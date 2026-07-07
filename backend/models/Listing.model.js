@@ -22,13 +22,17 @@ Delivery_Time:{
 Availability :{
     type:Boolean
 },
+Location:{
+    type:String
+
+},
 Images:[{type:String}] ,
 serviceCategory :{
     type:String,
     required:true
 },
 Stock:Number,
- status: { type: String, enum: ['active', 'pending', 'removed'], default: 'active' }
+// status: { type: String, enum: ['active', 'pending', 'removed'], default: 'active' }
 
 },{timestamps:true})
 const serviceModel=mongoose.model("user",serviceSchema)
