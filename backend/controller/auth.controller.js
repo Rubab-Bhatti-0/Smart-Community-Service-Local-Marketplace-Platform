@@ -30,7 +30,7 @@ const registerUser=async(req,res)=>{
     const token=generateToken(u._id);
     res.status(201).json({
       token,
-      user: { id: user._id, name: user.Name, email: user.email, role: user.role }
+      user: { id: user._id, Name: user.Name, email: user.email, role: user.role }
     });
 
 }catch(err){

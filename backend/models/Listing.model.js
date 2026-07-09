@@ -3,7 +3,7 @@ const mongoose=require('mongoose')
 const serviceSchema=new mongoose.Schema({
     owner:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'user',
+        ref:'User',
         required:true
     },
     type: { type: String, enum: ['product', 'service'], required: true },
