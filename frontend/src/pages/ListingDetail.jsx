@@ -10,7 +10,9 @@ export default function ListingDetail() {
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeImage, setActiveImage] = useState(0);
+  const [actionLoading, setActionLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -20,6 +22,7 @@ export default function ListingDetail() {
         setListing(res.data.listing);
       } catch (err) {
         console.error(err);
+        setError('Failed to load listing. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -29,19 +32,43 @@ export default function ListingDetail() {
 
   const handleFavorite = async () => {
     if (!user) return;
-    await toggleFavorite(listing._id);
+    try {
+      setActionLoading(true);
+      await toggleFavorite(listing._id);
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleMessage = async () => {
     if (!user) return;
-    const res = await startConversation(listing.owner._id);
-    navigate(`/messages/${res.data.conversation._id}`);
+    try {
+      setActionLoading(true);
+      const res = await startConversation(listing.owner._id);
+      navigate(`/messages/${res.data.conversation._id}`);
+    } catch (err) {
+      console.error('Failed to start conversation:', err);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  if (loading) return <p className="p-6 text-center">Loading...</p>;
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+  if (error) return (
+    <div className="max-w-5xl mx-auto p-6 text-center">
+      <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg inline-block">
+        <p className="text-red-700">{error}</p>
+        <Link to="/listings" className="text-blue-600 underline mt-4 inline-block">Back to Listings</Link>
+      </div>
+    </div>
+  );
   if (!listing) return <p className="p-6 text-center text-red-500">Listing not found.</p>;
 
   const isOwner = user && listing.owner._id === user.id;
+  const typeLabel = listing.type === 'product' ? 'Product' : 'Service';
+  const typeColor = listing.type === 'product' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-purple-50 text-purple-700 border-purple-200';
 
   return (
     <div className="max-w-5xl mx-auto p-6 grid md:grid-cols-2 gap-8">
@@ -67,8 +94,8 @@ export default function ListingDetail() {
       <div>
         <div className="flex justify-between items-start">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-500">{listing.type}</span>
-            <h1 className="text-3xl font-bold text-gray-900">{listing.title}</h1>
+            <span className={`text-xs font-semibold uppercase tracking-wider px-2 py-1 rounded border ${typeColor}`}>{typeLabel}</span>
+            <h1 className="text-3xl font-bold text-gray-900 mt-2">{listing.title}</h1>
           </div>
           <p className="text-2xl font-bold text-blue-600">Rs. {listing.pricing}</p>
         </div>
@@ -84,13 +111,31 @@ export default function ListingDetail() {
               <img src={listing.owner.picture} alt={listing.owner.name} className="w-10 h-10 rounded-full object-cover" />
             )}
             <div>
-              <p className="font-semibold text-gray-900">Seller: {listing.owner?.name}</p>
+              <Link to={`/profile/${listing.owner?._id}`} className="hover:underline">
+                <p className="font-semibold text-gray-900">Seller: {listing.owner?.name || 'Unknown'}</p>
+              </Link>
               <p className="text-sm text-gray-500">
                 Rating: {listing.owner?.ratingAvg ? `${listing.owner.ratingAvg} / 5` : 'No ratings yet'}
               </p>
             </div>
           </div>
         </div>
+
+        {listing.type === 'service' && listing.deliveryTime && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
+            <span className="font-medium text-gray-700">Delivery Time: </span>
+            <span className="text-gray-600">{listing.deliveryTime}</span>
+          </div>
+        )}
+
+        {listing.type === 'product' && listing.stock !== undefined && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
+            <span className="font-medium text-gray-700">Stock: </span>
+            <span className={`text-gray-600 ${listing.stock > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}`}>
+              {listing.stock > 0 ? `${listing.stock} available` : 'Out of stock'}
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-3 mt-8">
           {isOwner ? (
@@ -106,15 +151,15 @@ export default function ListingDetail() {
               )}
               {user ? (
                 <>
-                  <button onClick={handleFavorite} className="border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md transition-colors">
+                  <button onClick={handleFavorite} disabled={actionLoading} className="border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md transition-colors disabled:opacity-50">
                     ♡ Favorite
                   </button>
-                  <button onClick={handleMessage} className="border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md transition-colors">
+                  <button onClick={handleMessage} disabled={actionLoading} className="border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md transition-colors disabled:opacity-50">
                     Message Seller
                   </button>
                 </>
               ) : (
-                <Link to="/login" className="text-blue-600 hover:underline">Log in to book or message</Link>
+                <Link to="/login" className="text-blue-600 hover:underline px-6 py-2">Log in to book or message</Link>
               )}
             </>
           )}

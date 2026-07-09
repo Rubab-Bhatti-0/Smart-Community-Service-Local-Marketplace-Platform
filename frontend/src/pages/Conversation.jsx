@@ -7,11 +7,15 @@ export default function Conversations() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     getMyConversations()
       .then((res) => setConversations(res.data.conversations || []))
-      .catch(err => console.error('Failed to load conversations'))
+      .catch(err => {
+        console.error('Failed to load conversations:', err);
+        setError('Could not load your conversations. Please try again.');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -20,9 +24,22 @@ export default function Conversations() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8 text-gray-900">Your Messages</h1>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <p className="text-red-700 text-sm">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-sm text-red-600 underline mt-2"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       <div className="space-y-3">
         {conversations.map((c) => {
-          const otherUser = c.participants.find((p) => p._id !== user.id);
+          const otherUser = c.participants?.find((p) => p._id !== user.id);
           return (
             <Link
               key={c._id}
@@ -30,18 +47,22 @@ export default function Conversations() {
               className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-blue-200 transition-all group"
             >
               <img
-                src={otherUser?.picture || 'https://placehold.co/40x40?text=U'}
-                alt={otherUser?.name}
+                src={otherUser?.picture || 'https://placehold.co/48x48?text=' + (otherUser?.name?.[0] || 'U')}
+                alt={otherUser?.name || 'User'}
                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-50"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline">
-                  <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{otherUser?.name}</p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date(c.updatedAt).toLocaleDateString()}
+                  <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                    {otherUser?.name || 'Unknown User'}
+                  </p>
+                  <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
+                    {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : ''}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 truncate mt-0.5">{c.lastMessage || 'Start a conversation...'}</p>
+                <p className="text-sm text-gray-500 truncate mt-0.5">
+                  {c.lastMessage || 'Start a conversation...'}
+                </p>
               </div>
             </Link>
           );

@@ -5,8 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
-
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -20,6 +19,7 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
       } catch (err) {
         localStorage.removeItem('token');
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -52,6 +52,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
 
 export const useAuth = () => useContext(AuthContext);

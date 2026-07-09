@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getListings } from '../api/listing';
+import { useAuth } from '../context/AuthContext';
 
 export default function Listings() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [sort, setSort] = useState('Newest');
   const [filters, setFilters] = useState({
     search: '', type: '', serviceCategory: '', minPrice: '', maxPrice: '', page: 1, limit: 12
   });
@@ -13,22 +18,25 @@ export default function Listings() {
   useEffect(() => {
     const fetchListings = async () => {
       setLoading(true);
+      setError('');
       try {
         const cleanParams = Object.fromEntries(
           Object.entries(filters).filter(([_, v]) => v !== '')
         );
         if (cleanParams.page) cleanParams.page = Number(cleanParams.page);
+        if (sort) cleanParams.sort = sort;
         const res = await getListings(cleanParams);
         setListings(res.data.listings || []);
-        setPagination({ page: Number(filters.page), total: res.data.total || 0 });
+        setPagination({ page: Number(filters.page) || 1, total: res.data.total || 0 });
       } catch (err) {
         console.error(err);
+        setError('Failed to load listings. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchListings();
-  }, [filters]);
+  }, [filters, sort]);
 
   const updateFilter = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
@@ -41,7 +49,7 @@ export default function Listings() {
       <div className="flex flex-col md:flex-row gap-6">
         <aside className="w-full md:w-64 shrink-0 space-y-4">
           <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="font-semibold mb-3">Filters</h2>
+            <h2 className="font-semibold mb-3 text-gray-900">Filters</h2>
             <div className="space-y-3">
               <input
                 type="text"
@@ -84,9 +92,34 @@ export default function Listings() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <h2 className="font-semibold mb-3 text-gray-900">Sort By</h2>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="Newest">Newest First</option>
+              <option value="priceLow">Price: Low to High</option>
+              <option value="priceHigh">Price: High to Low</option>
+            </select>
+          </div>
         </aside>
 
         <main className="flex-1">
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+              <p className="text-red-700 text-sm">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-red-600 underline mt-2"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -94,11 +127,22 @@ export default function Listings() {
           ) : listings.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <p className="text-gray-500">No listings match your filters.</p>
+              <button
+                onClick={() => setFilters({ search: '', type: '', serviceCategory: '', minPrice: '', maxPrice: '', page: 1, limit: 12 })}
+                className="text-blue-600 font-bold mt-4 inline-block hover:underline"
+              >
+                Clear Filters
+              </button>
             </div>
           ) : (
             <>
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-gray-500">{pagination.total} results found</p>
+                {user && (user.role === 'seller' || user.role === 'admin') && (
+                  <Link to="/listings/new" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded font-medium transition-colors">
+                    + Create Listing
+                  </Link>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {listings.map((listing) => (
@@ -111,7 +155,7 @@ export default function Listings() {
                     <button
                       key={p}
                       onClick={() => updateFilter('page', p)}
-                      className={`px-4 py-2 rounded-md transition-colors ${p === pagination.page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`}
+                      className={`px-4 py-2 rounded-md transition-colors text-sm ${p === pagination.page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`}
                     >
                       {p}
                     </button>
@@ -127,6 +171,9 @@ export default function Listings() {
 }
 
 function ListingCard({ listing }) {
+  const typeLabel = listing.type === 'product' ? 'Product' : 'Service';
+  const typeColor = listing.type === 'product' ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700';
+
   return (
     <Link to={`/listings/${listing._id}`} className="group bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="relative aspect-video overflow-hidden">
@@ -136,8 +183,8 @@ function ListingCard({ listing }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute top-2 left-2">
-          <span className="bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase px-2 py-1 rounded text-gray-700 shadow-sm">
-            {listing.type}
+          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm ${typeColor}`}>
+            {typeLabel}
           </span>
         </div>
       </div>
@@ -148,7 +195,7 @@ function ListingCard({ listing }) {
           {listing.owner?.picture && (
             <img src={listing.owner.picture} className="w-6 h-6 rounded-full object-cover" alt="" />
           )}
-          <p className="text-xs text-gray-500 truncate">Seller: {listing.owner?.name}</p>
+          <p className="text-xs text-gray-500 truncate">Seller: {listing.owner?.name || 'Unknown'}</p>
         </div>
       </div>
     </Link>

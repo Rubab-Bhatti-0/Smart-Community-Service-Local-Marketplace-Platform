@@ -1,32 +1,37 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile } from '../api/users';
-import { getListings } from '../api/listing'; 
+import { getListings } from '../api/listing';
 import ReviewForm from '../components/reviews/ReviewForm';
 import ReviewList from '../components/reviews/ReviewList';
 
 export default function Profile() {
   const { id } = useParams();
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0); 
+  const [error, setError] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const isOwnProfile = currentUser && currentUser.id === id;
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError('');
       try {
         const [profileRes, listingsRes] = await Promise.all([
           getUserProfile(id),
-          getListings({ owner: id })
+          getListings({})
         ]);
         setProfile(profileRes.data.user);
-        setListings(listingsRes.data.listings || []);
+        setListings(listingsRes.data.listings?.filter(l => l.owner?._id === id) || []);
       } catch (err) {
         console.error(err);
+        setError('Failed to load profile. The user may not exist.');
       } finally {
         setLoading(false);
       }
@@ -35,6 +40,14 @@ export default function Profile() {
   }, [id, refreshKey]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+  if (error) return (
+    <div className="max-w-4xl mx-auto p-6 text-center">
+      <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg inline-block">
+        <p className="text-red-700">{error}</p>
+        <button onClick={() => navigate('/listings')} className="text-blue-600 underline mt-4 inline-block">Back to Listings</button>
+      </div>
+    </div>
+  );
   if (!profile) return <div className="p-6 text-center text-red-500">User not found.</div>;
 
   return (
@@ -42,7 +55,7 @@ export default function Profile() {
       <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <img
-            src={profile.picture || 'https://placehold.co/100x100?text=User'}
+            src={profile.picture || 'https://placehold.co/100x100?text=' + (profile.name?.[0] || 'U')}
             alt={profile.name}
             className="w-32 h-32 rounded-full object-cover border-4 border-gray-50 shadow-sm"
           />
@@ -57,10 +70,15 @@ export default function Profile() {
                 <span className="font-bold text-gray-900 ml-1">{profile.ratingAvg ? profile.ratingAvg.toFixed(1) : '0.0'}</span>
                 <span className="text-gray-400 ml-1">({profile.ratingCount || 0} reviews)</span>
               </div>
-              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                profile.role === 'admin' ? 'bg-red-50 text-red-600' : profile.role === 'seller' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
+              }`}>
                 {profile.role}
               </span>
             </div>
+            {profile.contact && (
+              <p className="text-sm text-gray-500 mt-2">📞 {profile.contact}</p>
+            )}
           </div>
           {isOwnProfile && (
             <button className="bg-white border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md text-sm font-bold transition-colors">

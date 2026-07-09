@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getMyBookings, getReceivedBookings } from '../api/bookings';
 import { getMyFavorites } from '../api/favourite';
-import api from '../api/axiosInstance';
+import { getMyListings } from '../api/listing';
 import BookingCard from '../components/booking/BookingCard';
 
 const TABS = ['overview', 'listings', 'bookings', 'favorites'];
@@ -19,11 +19,13 @@ export default function Dashboard() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const isSellerOrAdmin = user?.role === 'seller' || user?.role === 'admin';
+
   const fetchAll = async () => {
     setLoading(true);
     try {
       const [listingsRes, myBookingsRes, receivedRes, favRes] = await Promise.all([
-        api.get('/listings/getmine'),
+        getMyListings(),
         getMyBookings(),
         getReceivedBookings(),
         getMyFavorites()
@@ -52,7 +54,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.name}</h1>
           <p className="text-gray-500 capitalize">Account Type: {user?.role}</p>
         </div>
-        {user?.role !== 'buyer' && (
+        {isSellerOrAdmin && (
           <Link to="/listings/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
             + Create New Listing
           </Link>
@@ -60,27 +62,30 @@ export default function Dashboard() {
       </div>
 
       <div className="flex gap-6 border-b border-gray-200 mb-8 overflow-x-auto">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setSearchParams({ tab })}
-            className={`pb-4 px-2 capitalize text-sm font-medium transition-all ${activeTab === tab ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            {tab}
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          if (tab === 'listings' && !isSellerOrAdmin) return null;
+          return (
+            <button
+              key={tab}
+              onClick={() => setSearchParams({ tab })}
+              className={`pb-4 px-2 capitalize text-sm font-medium transition-all ${activeTab === tab ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              {tab}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard label="My Listings" value={myListings.length} />
+          {isSellerOrAdmin && <StatCard label="My Listings" value={myListings.length} />}
           <StatCard label="Bookings Sent" value={myBookings.length} />
-          <StatCard label="Requests Received" value={receivedBookings.length} />
+          {isSellerOrAdmin && <StatCard label="Requests Received" value={receivedBookings.length} />}
           <StatCard label="Saved Items" value={favorites.length} />
         </div>
       )}
 
-      {activeTab === 'listings' && (
+      {activeTab === 'listings' && isSellerOrAdmin && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {myListings.map((l) => (
             <div key={l._id} className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -100,6 +105,7 @@ export default function Dashboard() {
           {myListings.length === 0 && (
             <div className="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
               <p className="text-gray-500">You haven't created any listings yet.</p>
+              <Link to="/listings/new" className="text-blue-600 font-bold mt-4 inline-block hover:underline">Create Your First Listing</Link>
             </div>
           )}
         </div>
@@ -116,7 +122,7 @@ export default function Dashboard() {
               {myBookings.length === 0 && <p className="text-gray-500 text-sm py-4 italic">No outgoing requests.</p>}
             </div>
           </div>
-          {user?.role !== 'buyer' && (
+          {isSellerOrAdmin && (
             <div>
               <h2 className="text-lg font-bold mb-4 text-gray-800">Requests for My Services</h2>
               <div className="space-y-4">

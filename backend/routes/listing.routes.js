@@ -16,7 +16,7 @@ Router.get('/getmine', authorizaton, async (req, res) => {
 });
 Router.get('/:id', getListingByID);
 Router.post('/create', authorizaton, requireRoles('seller', 'admin'), upload.array('images', 5), createListing);
-Router.put('/edit/:id', authorizaton, upload.array('images', 5), editListing);
+Router.put('/edit/:id', authorizaton, requireRoles('seller', 'admin'), upload.array('images', 5), editListing);
 Router.delete('/del/:id', authorizaton, delListing);
 
 module.exports = Router;

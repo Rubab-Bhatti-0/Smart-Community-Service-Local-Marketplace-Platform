@@ -31,7 +31,7 @@ const createListing = async (req, res) => {
 
 const getListingByID = async (req, res) => {
     try {
-        const listing = await serviceModel.findById(req.params.id).populate('owner', 'Name Picture Bio RatingAvg Location');
+        const listing = await serviceModel.findById(req.params.id).populate('owner', 'name picture bio ratingAvg location');
         if (!listing) {
             return res.status(404).json({ message: "No listing found!" });
         }
@@ -113,7 +113,7 @@ const viewListing = async (req, res) => {
                 sort === 'priceHigh' ? { pricing: -1 } : { createdAt: -1 };
         const skip = (Number(page) - 1) * limit;
         const [listings, total] = await Promise.all([
-            serviceModel.find(filter).populate('owner', 'Name Picture RatingAvg Location')
+            serviceModel.find(filter).populate('owner', 'name picture ratingAvg location')
                 .sort(sortOption).skip(skip).limit(limit),
             serviceModel.countDocuments(filter)
         ]);

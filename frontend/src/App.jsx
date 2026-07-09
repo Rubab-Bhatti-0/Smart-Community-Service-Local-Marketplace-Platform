@@ -19,7 +19,8 @@ function App() {
       <Navbar />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Navigate to="/listings" replace />} />
+        <Route path="/" element={<Listings />} />
+        <Route path="/home" element={<Listings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/listings" element={<Listings />} />
@@ -64,7 +65,7 @@ function App() {
         <Route
           path="/listings/new"
           element={
-            <ProtectedRoute allowedRoles={['seller', 'admin']}>
+            <ProtectedRoute allowedRoles={['seller', 'admin']} fallbackPath="/dashboard">
               <ListingForm />
             </ProtectedRoute>
           }
@@ -72,7 +73,7 @@ function App() {
         <Route
           path="/listings/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={['seller', 'admin']}>
+            <ProtectedRoute allowedRoles={['seller', 'admin']} fallbackPath="/dashboard">
               <ListingForm />
             </ProtectedRoute>
           }
@@ -82,7 +83,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin']} fallbackPath="/dashboard">
               <AdminPanel />
             </ProtectedRoute>
           }
