@@ -6,7 +6,7 @@ const upload =require('../middleware/upload.middleware')
 
 Router.get('/viewall',viewListing)
 Router.put('/edit/:id',requireRoles,upload.array('images',5),editListing)
-Router.delete('/del:/id',requireRoles,delListing)
+Router.delete('/del/:id',requireRoles,delListing)
 Router.post('/create',requireRoles,upload.array('images',5),createListing)
 Router.get('/view/:id',getListingByID)
 

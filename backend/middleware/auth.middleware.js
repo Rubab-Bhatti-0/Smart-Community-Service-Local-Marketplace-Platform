@@ -1,12 +1,14 @@
 const jwt=require('jsonwebtoken')
 const user=require('../models/User.model')
 const authorizaton=async (req,res,next)=>{
-    let token
+    const authHeader = req.headers.authorization;
 
-    const authHeader=req.header.authorizaton
-    if(!authHeader && authHeader.startsWith('Bearer ') ){
-        token=authHeader.split('')[1];
-    }
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token' });
+  }
+
+  const token = authHeader.split(' ')[1];
     if(!token){
         return res.status(400).json({
             message:"Not authorized, no token"

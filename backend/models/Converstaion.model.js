@@ -1,10 +1,9 @@
-const mongoose=require('mongoose')
+const mongoose = require('mongoose');
 
-const conversationSchema=new mongoose.Schema({
-            particpants=[{type:mongoose.Schema.Types.ObjectId,ref:user,required:true}],
-            lastMessage:{type:String,default: '' }
+const conversationSchema = new mongoose.Schema({
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+    lastMessage: { type: String, default: '' }
+}, { timestamps: true });
 
-},{timestamps:true})
-
-const conversationModel=mongoose.model('Conversation',conversationSchema)
-module.exports=conversationModel
+const conversationModel = mongoose.model('Conversation', conversationSchema);
+module.exports = conversationModel;

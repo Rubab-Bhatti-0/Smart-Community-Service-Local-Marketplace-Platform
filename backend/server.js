@@ -1,17 +1,18 @@
 require('dotenv').config()
+const http = require('http');
+const { Server } = require('socket.io');
 const getConnection=require('./config/db/db')
 const PORT=process.env.PORT || 5000
 const app=require('./src/App')
 
 getConnection()
 
-try {
-    app.listen(PORT,()=>{
-        console.log(`Server is listening on port ${PORT}`)
-    })
+const server = http.createServer(app); 
+const io = new Server(server, {
+  cors: { origin: '*' } 
+});
 
-    
-} catch (error) {
-    console.log(error)
-    
-}
+require('./sockets/chatSocket')(io); 
+
+
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
