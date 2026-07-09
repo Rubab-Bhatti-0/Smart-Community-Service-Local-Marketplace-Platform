@@ -24,6 +24,7 @@ export default function Navbar() {
             <NotificationBell />
             <Link to="/messages" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">Messages</Link>
             <Link to="/dashboard" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">Dashboard</Link>
+            <Link to="/myprofile" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">My Profile</Link>
             {user.role === 'admin' && (
               <Link to="/admin" className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors">Admin Panel</Link>
             )}

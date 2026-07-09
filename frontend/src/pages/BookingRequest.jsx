@@ -58,7 +58,9 @@ export default function BookingRequest() {
   return (
     <div className="max-w-md mx-auto p-6">
       <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Request Booking</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          {listing.type === 'product' ? 'Order Product' : 'Request Booking'}
+        </h1>
         <p className="text-gray-500 text-sm mb-8">
           For: <span className="font-semibold text-gray-700">{listing.title}</span> • Rs. {listing.pricing}
         </p>
@@ -71,7 +73,9 @@ export default function BookingRequest() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Preferred Date</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {listing.type === 'product' ? 'Preferred Delivery/Pickup Date' : 'Preferred Date'}
+            </label>
             <input
               type="date"
               value={date}
@@ -106,7 +110,9 @@ export default function BookingRequest() {
             disabled={submitting || !date}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Sending request...' : 'Send Booking Request'}
+            {submitting
+              ? (listing.type === 'product' ? 'Sending order...' : 'Sending request...')
+              : (listing.type === 'product' ? 'Send Order Request' : 'Send Booking Request')}
           </button>
           <Link to="/listings" className="text-center block text-sm text-gray-500 hover:text-blue-600 mt-4">
             ← Back to Listings

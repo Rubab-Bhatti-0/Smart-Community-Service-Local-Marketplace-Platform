@@ -58,6 +58,7 @@ export default function Register() {
             <select name="role" value={form.role} onChange={handleChange} className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
               <option value="buyer">Buyer / Customer</option>
               <option value="seller">Seller / Service Provider</option>
+              <option value="admin">Administrator (Admin Panel Access)</option>
             </select>
           </div>
         </div>

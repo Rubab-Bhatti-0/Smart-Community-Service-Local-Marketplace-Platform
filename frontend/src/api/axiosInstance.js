@@ -8,6 +8,8 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (api.defaults.headers.common['Authorization']) {
+    config.headers.Authorization = api.defaults.headers.common['Authorization'];
   }
   return config;
 });

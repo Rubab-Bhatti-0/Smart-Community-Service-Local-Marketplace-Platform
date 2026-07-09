@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserProfile } from '../api/users';
+import { getUserProfile, updateProfile } from '../api/users';
 import { getListings } from '../api/listing';
 import ReviewForm from '../components/reviews/ReviewForm';
 import ReviewList from '../components/reviews/ReviewList';
 
 export default function Profile() {
-  const { id } = useParams();
+  const { id: paramId } = useParams();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
+  const id = paramId || currentUser?.id;
   const [profile, setProfile] = useState(null);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '', bio: '', contact: '', location: '', picture: ''
+  });
 
   const isOwnProfile = currentUser && currentUser.id === id;
 
@@ -27,7 +32,15 @@ export default function Profile() {
           getUserProfile(id),
           getListings({})
         ]);
-        setProfile(profileRes.data.user);
+        const p = profileRes.data.user;
+        setProfile(p);
+        setEditForm({
+          name: p.name,
+          bio: p.bio || '',
+          contact: p.contact || '',
+          location: p.location || '',
+          picture: p.picture || ''
+        });
         setListings(listingsRes.data.listings?.filter(l => l.owner?._id === id) || []);
       } catch (err) {
         console.error(err);
@@ -50,6 +63,18 @@ export default function Profile() {
   );
   if (!profile) return <div className="p-6 text-center text-red-500">User not found.</div>;
 
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      await updateProfile(editForm);
+      setRefreshKey(k => k + 1);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Update failed:', err);
+      alert('Failed to update profile');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-8">
@@ -60,28 +85,75 @@ export default function Profile() {
             className="w-32 h-32 rounded-full object-cover border-4 border-gray-50 shadow-sm"
           />
           <div className="text-center md:text-left flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
-            <p className="text-gray-500 flex items-center justify-center md:justify-start gap-1 mt-1">
-              <span className="text-blue-600">📍</span> {profile.location || 'Location not specified'}
-            </p>
-            <div className="mt-3 flex items-center justify-center md:justify-start gap-4">
-              <div className="text-sm">
-                <span className="text-yellow-500 font-bold text-lg">★</span>
-                <span className="font-bold text-gray-900 ml-1">{profile.ratingAvg ? profile.ratingAvg.toFixed(1) : '0.0'}</span>
-                <span className="text-gray-400 ml-1">({profile.ratingCount || 0} reviews)</span>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                profile.role === 'admin' ? 'bg-red-50 text-red-600' : profile.role === 'seller' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
-              }`}>
-                {profile.role}
-              </span>
-            </div>
-            {profile.contact && (
-              <p className="text-sm text-gray-500 mt-2">📞 {profile.contact}</p>
+            {isEditing ? (
+              <form onSubmit={handleUpdateProfile} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-0.5">Name</label>
+                  <input
+                    className="w-full border rounded px-2 py-1 text-lg font-medium outline-none focus:ring-1 focus:ring-blue-500"
+                    value={editForm.name}
+                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-0.5">Location</label>
+                  <input
+                    className="w-full border rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Location"
+                    value={editForm.location}
+                    onChange={e => setEditForm({ ...editForm, location: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-0.5">Contact Details</label>
+                  <input
+                    className="w-full border rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Contact"
+                    value={editForm.contact}
+                    onChange={e => setEditForm({ ...editForm, contact: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-0.5">Profile Picture URL</label>
+                  <input
+                    className="w-full border rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Profile Picture URL"
+                    value={editForm.picture}
+                    onChange={e => setEditForm({ ...editForm, picture: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-bold transition-colors">Save</button>
+                  <button type="button" onClick={() => setIsEditing(false)} className="bg-gray-200 hover:bg-gray-300 px-4 py-1.5 rounded text-sm font-bold transition-colors">Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
+                <p className="text-gray-500 flex items-center justify-center md:justify-start gap-1 mt-1">
+                  <span className="text-blue-600">📍</span> {profile.location || 'Location not specified'}
+                </p>
+                <div className="mt-3 flex items-center justify-center md:justify-start gap-4">
+                  <div className="text-sm">
+                    <span className="text-yellow-500 font-bold text-lg">★</span>
+                    <span className="font-bold text-gray-900 ml-1">{profile.ratingAvg ? profile.ratingAvg.toFixed(1) : '0.0'}</span>
+                    <span className="text-gray-400 ml-1">({profile.ratingCount || 0} reviews)</span>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    profile.role === 'admin' ? 'bg-red-50 text-red-600' : profile.role === 'seller' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
+                  }`}>
+                    {profile.role}
+                  </span>
+                </div>
+                {profile.contact && (
+                  <p className="text-sm text-gray-500 mt-2">📞 {profile.contact}</p>
+                )}
+              </>
             )}
           </div>
-          {isOwnProfile && (
-            <button className="bg-white border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md text-sm font-bold transition-colors">
+          {isOwnProfile && !isEditing && (
+            <button onClick={() => setIsEditing(true)} className="bg-white border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md text-sm font-bold transition-colors">
               Edit Profile
             </button>
           )}
@@ -89,7 +161,16 @@ export default function Profile() {
 
         <div className="mt-8 pt-8 border-t border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 mb-2">About</h2>
-          <p className="text-gray-600 leading-relaxed">{profile.bio || 'No bio provided yet.'}</p>
+          {isEditing ? (
+            <textarea
+              className="w-full border rounded px-3 py-2 text-gray-600 leading-relaxed"
+              rows={4}
+              value={editForm.bio}
+              onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
+            />
+          ) : (
+            <p className="text-gray-600 leading-relaxed">{profile.bio || 'No bio provided yet.'}</p>
+          )}
         </div>
       </div>
 

@@ -13,6 +13,9 @@ export default function NotificationBell() {
       setUnreadCount(res.data.unreadCount || 0);
     } catch (err) {
       console.error('Failed to fetch notifications');
+      if (err.response?.status === 401) {
+        // Handled by axios interceptor, but we can stop the interval if needed
+      }
     }
   };
 

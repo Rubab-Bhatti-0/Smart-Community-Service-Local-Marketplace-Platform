@@ -29,6 +29,14 @@ function App() {
 
         {/* Protected Routes (All Auth Users) */}
         <Route
+          path="/myprofile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>

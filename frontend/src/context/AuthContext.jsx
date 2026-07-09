@@ -18,8 +18,12 @@ export const AuthProvider = ({ children }) => {
         const res = await api.get('/auth/me');
         setUser(res.data.user);
       } catch (err) {
-        localStorage.removeItem('token');
-        setUser(null);
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+        // If it's a network error, we might want to keep the token and retry later, 
+        // but for now, we'll just stop loading.
       } finally {
         setLoading(false);
       }
@@ -29,15 +33,20 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (formData) => {
     const res = await api.post('/auth/register', formData);
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
+    const { token, user } = res.data;
+    localStorage.setItem('token', token);
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(user);
     return res.data;
   };
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', res.data.token);
-    setUser(res.data.user);
+    const { token, user } = res.data;
+    localStorage.setItem('token', token);
+    // Set authorization header immediately for subsequent requests
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(user);
     return res.data;
   };
 

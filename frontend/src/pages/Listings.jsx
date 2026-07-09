@@ -146,7 +146,7 @@ export default function Listings() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {listings.map((listing) => (
-                  <ListingCard key={listing._id} listing={listing} />
+                  <ListingCard key={listing._id} listing={listing} currentUser={user} />
                 ))}
               </div>
               {totalPages > 1 && (
@@ -170,34 +170,54 @@ export default function Listings() {
   );
 }
 
-function ListingCard({ listing }) {
+function ListingCard({ listing, currentUser }) {
   const typeLabel = listing.type === 'product' ? 'Product' : 'Service';
   const typeColor = listing.type === 'product' ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700';
+  const isOwner = currentUser && (listing.owner?._id === currentUser.id || listing.owner === currentUser.id);
 
   return (
-    <Link to={`/listings/${listing._id}`} className="group bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
-      <div className="relative aspect-video overflow-hidden">
-        <img
-          src={listing.images?.[0] || 'https://placehold.co/400x300?text=No+Image'}
-          alt={listing.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-2 left-2">
-          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm ${typeColor}`}>
-            {typeLabel}
-          </span>
+    <div className="group bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col justify-between h-full">
+      <Link to={`/listings/${listing._id}`} className="block flex-1">
+        <div className="relative aspect-video overflow-hidden">
+          <img
+            src={listing.images?.[0] || 'https://placehold.co/400x300?text=No+Image'}
+            alt={listing.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-2 left-2">
+            <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded shadow-sm ${typeColor}`}>
+              {typeLabel}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{listing.title}</h3>
-        <p className="text-blue-600 font-bold mt-1">Rs. {listing.pricing}</p>
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-          {listing.owner?.picture && (
-            <img src={listing.owner.picture} className="w-6 h-6 rounded-full object-cover" alt="" />
-          )}
-          <p className="text-xs text-gray-500 truncate">Seller: {listing.owner?.name || 'Unknown'}</p>
+        <div className="p-4 pb-2">
+          <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{listing.title}</h3>
+          <p className="text-blue-600 font-bold mt-1">Rs. {listing.pricing}</p>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            {listing.owner?.picture && (
+              <img src={listing.owner.picture} className="w-6 h-6 rounded-full object-cover" alt="" />
+            )}
+            <p className="text-xs text-gray-500 truncate">Seller: {listing.owner?.name || 'Unknown'}</p>
+          </div>
         </div>
+      </Link>
+      <div className="px-4 pb-4">
+        {isOwner ? (
+          <Link
+            to={`/listings/${listing._id}/edit`}
+            className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-2 rounded-md font-semibold transition-colors"
+          >
+            Edit Listing
+          </Link>
+        ) : (
+          <Link
+            to={`/book/${listing._id}`}
+            className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-md font-semibold transition-colors"
+          >
+            {listing.type === 'product' ? 'Order Now' : 'Book Now'}
+          </Link>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }

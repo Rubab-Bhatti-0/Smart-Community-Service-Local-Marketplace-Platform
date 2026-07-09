@@ -36,6 +36,7 @@ export default function Dashboard() {
       setFavorites(favRes.data.favorites || []);
     } catch (err) {
       console.error('Dashboard fetch error:', err);
+      if (err.response?.status === 401) return; // Let interceptor handle it
     } finally {
       setLoading(false);
     }
@@ -54,11 +55,23 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.name}</h1>
           <p className="text-gray-500 capitalize">Account Type: {user?.role}</p>
         </div>
-        {isSellerOrAdmin && (
-          <Link to="/listings/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-            + Create New Listing
-          </Link>
-        )}
+        <div className="flex gap-3">
+          {user?.role === 'admin' && (
+            <Link to="/admin" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+              Go to Admin Panel
+            </Link>
+          )}
+          {isSellerOrAdmin && (
+            <Link to="/listings/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+              + Create New Listing
+            </Link>
+          )}
+          {!isSellerOrAdmin && (
+            <Link to="/listings" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+              + Add Booking
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-6 border-b border-gray-200 mb-8 overflow-x-auto">

@@ -27,7 +27,11 @@ const toggleFavorite = async (req, res) => {
 
 const getMyFavorites = async (req, res) => {
   try {
-    const favorites = await Favorite.find({ user: req.user._id }).populate('listing', 'title pricing images serviceCategory type');
+    const favorites = await Favorite.find({ user: req.user._id }).populate({
+      path: 'listing',
+      select: 'title pricing images serviceCategory type owner',
+      populate: { path: 'owner', select: 'name' }
+    });
     res.status(200).json({ favorites });
   } catch (err) {
     res.status(500).json({ message: err.message });
