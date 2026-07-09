@@ -27,7 +27,7 @@ exports.startConversation = async (req, res) => {
 exports.getMyConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user._id })
-      .populate('participants', 'Name Picture')
+      .populate('participants', 'name picture')
       .sort({ updatedAt: -1 });
     res.status(200).json({ conversations });
   } catch (err) {

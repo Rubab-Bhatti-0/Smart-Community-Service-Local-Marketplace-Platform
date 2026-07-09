@@ -4,9 +4,9 @@ const Notification = require('../models/Notification.model');
 
 const createBooking = async (req, res) => {
   try {
-    const { listingId, date: Date, time: Time, notes } = req.body;
+    const { listingId, date, time, notes } = req.body;
 
-    if (!listingId || !Date) {
+    if (!listingId || !date) {
       return res.status(400).json({ message: 'listingId and date are required' });
     }
 
@@ -15,7 +15,6 @@ const createBooking = async (req, res) => {
       return res.status(404).json({ message: 'Listing not found' });
     }
 
-
     if (listing.owner.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: 'You cannot book your own listing' });
     }
@@ -23,12 +22,11 @@ const createBooking = async (req, res) => {
     const booking = await Booking.create({
       buyer: req.user._id,
       listing: listingId,
-      Date,
-      Time,
+      date,
+      time,
       notes,
       status: 'pending'
     });
-
 
     await Notification.create({
       user: listing.owner,
@@ -45,7 +43,7 @@ const createBooking = async (req, res) => {
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ buyer: req.user._id })
-      .populate('listing', 'title Pricing Images owner').populate('listing.owner', 'Name Picture')
+      .populate('listing', 'title pricing images owner').populate('listing.owner', 'name picture')
       .sort({ createdAt: -1 });
     res.status(200).json({ bookings });
   } catch (err) {
@@ -55,13 +53,12 @@ const getMyBookings = async (req, res) => {
 
 const getReceivedBookings = async (req, res) => {
   try {
-    
     const myListings = await Listing.find({ owner: req.user._id }).select('_id');
     const myListingIds = myListings.map(l => l._id);
 
     const bookings = await Booking.find({ listing: { $in: myListingIds } })
-      .populate('listing', 'title Pricing Images')
-      .populate('buyer', 'Name Picture')
+      .populate('listing', 'title pricing images')
+      .populate('buyer', 'name picture')
       .sort({ createdAt: -1 });
 
     res.status(200).json({ bookings });
@@ -85,7 +82,6 @@ const updateBookingStatus = async (req, res) => {
     if (!isBuyer && !isSeller) {
       return res.status(403).json({ message: 'Not authorized on this booking' });
     }
-
     
     if (status === 'cancelled' && !isBuyer) {
       return res.status(403).json({ message: 'Only the buyer can cancel' });
@@ -97,7 +93,6 @@ const updateBookingStatus = async (req, res) => {
     booking.status = status;
     await booking.save();
 
-  
     const notifyUserId = isBuyer ? booking.listing.owner : booking.buyer;
     await Notification.create({
       user: notifyUserId,

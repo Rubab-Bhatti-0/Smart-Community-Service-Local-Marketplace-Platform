@@ -2,10 +2,10 @@ const mongoose=require('mongoose')
 
 const userSchema=new mongoose.Schema({
 
-    Picture:{
+    picture: {
         type:String
     }, 
-    Name:{
+    name: {
         type:String,
         required:true,trim: true
     },
@@ -27,28 +27,28 @@ const userSchema=new mongoose.Schema({
         default:'buyer'
 
     },
-    Bio:{
+    bio: {
         type:String,
         default:''
     }, 
-    Contact:{
+    contact: {
         type:String,
         default:''
     },
-Location:{
+location: {
     type:String,
     default:''
 }, 
-Services:[{
+services: [{
     type:String
 
 }],
-RatingAvg:{
+ratingAvg: {
     type:Number,
     default:0
 
 },
-RatingCount:{
+ratingCount: {
     type:Number,
 default:0
 },

@@ -2,8 +2,8 @@ const serviceModel = require('../models/Listing.model');
 
 const createListing = async (req, res) => {
     try {
-        const { type, title, Description, Pricing, Delivery_Time, Availability, serviceCategory, Stock, Location } = req.body;
-        if (!title || !Description || !Pricing || !serviceCategory) {
+        const { type, title, description, pricing, deliveryTime, availability, serviceCategory, stock, location } = req.body;
+        if (!title || !description || !pricing || !serviceCategory) {
             return res.status(400).json({ message: "Provide all fields that are required!" });
         }
         const imageURLs = req.files ? req.files.map(file => file.path) : [];
@@ -11,14 +11,14 @@ const createListing = async (req, res) => {
             owner: req.user._id,
             type,
             title,
-            Description,
-            Pricing,
-            Delivery_Time: type === 'service' ? Delivery_Time : undefined,
-            Availability: type === 'service' ? Availability : undefined,
-            Images: imageURLs,
+            description,
+            pricing,
+            deliveryTime: type === 'service' ? deliveryTime : undefined,
+            availability: type === 'service' ? availability : undefined,
+            images: imageURLs,
             serviceCategory,
-            Stock: type === 'product' ? Stock : undefined,
-            Location
+            stock: type === 'product' ? stock : undefined,
+            location
         });
         return res.status(201).json({
             message: "New listing created!",
@@ -50,12 +50,12 @@ const editListing = async (req, res) => {
         if (listing.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
             return res.status(403).json({ message: "Unauthorized! You cannot edit this listing" });
         }
-        const updatableFields = ['title', 'Description', 'Pricing', 'Stock', 'Availability', 'Delivery_Time', 'Location', 'serviceCategory', 'type'];
+        const updatableFields = ['title', 'description', 'pricing', 'stock', 'availability', 'deliveryTime', 'location', 'serviceCategory', 'type'];
         updatableFields.forEach(field => {
             if (req.body[field] !== undefined) listing[field] = req.body[field];
         });
         if (req.files && req.files.length > 0) {
-            listing.Images = req.files.map(file => file.path);
+            listing.images = req.files.map(file => file.path);
         }
         await listing.save();
         return res.status(200).json({ message: "Listing updated!", listing });
@@ -90,27 +90,27 @@ const viewListing = async (req, res) => {
             minPrice,
             maxPrice,
             search,
-            Location,
+            location,
             sort = 'Newest'
         } = req.query;
         const filter = {};
         if (type) filter.type = type;
         if (serviceCategory) filter.serviceCategory = serviceCategory;
-        if (Location) filter.Location = { $regex: Location, $options: 'i' };
+        if (location) filter.location = { $regex: location, $options: 'i' };
         if (minPrice || maxPrice) {
-            filter.Pricing = {};
-            if (minPrice) filter.Pricing.$gte = Number(minPrice);
-            if (maxPrice) filter.Pricing.$lte = Number(maxPrice);
+            filter.pricing = {};
+            if (minPrice) filter.pricing.$gte = Number(minPrice);
+            if (maxPrice) filter.pricing.$lte = Number(maxPrice);
         }
         if (search) {
             filter.$or = [
                 { title: { $regex: search, $options: 'i' } },
-                { Description: { $regex: search, $options: 'i' } }
+                { description: { $regex: search, $options: 'i' } }
             ];
         }
         const sortOption = sort === 'Newest' ? { createdAt: -1 } :
-            sort === 'priceLow' ? { Pricing: 1 } :
-                sort === 'priceHigh' ? { Pricing: -1 } : { createdAt: -1 };
+            sort === 'priceLow' ? { pricing: 1 } :
+                sort === 'priceHigh' ? { pricing: -1 } : { createdAt: -1 };
         const skip = (Number(page) - 1) * limit;
         const [listings, total] = await Promise.all([
             serviceModel.find(filter).populate('owner', 'Name Picture RatingAvg Location')
@@ -118,7 +118,7 @@ const viewListing = async (req, res) => {
             serviceModel.countDocuments(filter)
         ]);
         res.status(200).json({
-            Listings: listings,
+            listings: listings,
             total: total
         });
     } catch (error) {

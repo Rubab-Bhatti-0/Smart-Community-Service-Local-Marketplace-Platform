@@ -4,8 +4,8 @@ const generateToken = require('../utils/generateToken');
 
 const registerUser = async (req, res) => {
     try {
-        const { Name, email, password, role } = req.body;
-        if (!Name || !password || !email) {
+        const { name, email, password, role } = req.body;
+        if (!name || !password || !email) {
             return res.status(400).json({ message: "Enter credentials" });
         }
         const isEmailExist = await user.findOne({ email });
@@ -15,7 +15,7 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashpass = await bcrypt.hash(password, salt);
         const u = await user.create({
-            Name,
+            name,
             email,
             password: hashpass,
             role: role || 'buyer'
@@ -23,7 +23,7 @@ const registerUser = async (req, res) => {
         const token = generateToken(u._id);
         res.status(201).json({
             token,
-            user: { id: u._id, name: u.Name, email: u.email, role: u.role }
+            user: { id: u._id, name: u.name, email: u.email, role: u.role }
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -50,7 +50,7 @@ const loginUser = async (req, res) => {
         const token = generateToken(u._id);
         res.status(200).json({
             token,
-            user: { id: u._id, name: u.Name, email: u.email, role: u.role }
+            user: { id: u._id, name: u.name, email: u.email, role: u.role }
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -61,16 +61,16 @@ const getMe = async (req, res) => {
     res.status(200).json({
         user: {
             id: req.user._id,
-            name: req.user.Name,
+            name: req.user.name,
             email: req.user.email,
             role: req.user.role,
-            Picture: req.user.Picture,
-            Bio: req.user.Bio,
-            Contact: req.user.Contact,
-            Location: req.user.Location,
-            Services: req.user.Services,
-            RatingAvg: req.user.RatingAvg,
-            RatingCount: req.user.RatingCount
+            picture: req.user.picture,
+            bio: req.user.bio,
+            contact: req.user.contact,
+            location: req.user.location,
+            services: req.user.services,
+            ratingAvg: req.user.ratingAvg,
+            ratingCount: req.user.ratingCount
         }
     });
 };

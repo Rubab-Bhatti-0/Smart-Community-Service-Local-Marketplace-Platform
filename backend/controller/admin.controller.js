@@ -1,4 +1,3 @@
-
 const User = require('../models/User.model');
 const Listing = require('../models/Listing.model');
 const Booking = require('../models/Booking.model');
@@ -27,7 +26,7 @@ const toggleSuspendUser = async (req, res) => {
 
 const getAllListingsAdmin = async (req, res) => {
   try {
-    const listings = await Listing.find().populate('owner', 'Name email').sort({ createdAt: -1 });
+    const listings = await Listing.find().populate('owner', 'name email').sort({ createdAt: -1 });
     res.status(200).json({ listings });
   } catch (err) {
     res.status(500).json({ message: err.message });

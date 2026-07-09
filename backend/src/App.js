@@ -15,7 +15,7 @@ app.use(cors())
 
 app.use('/api/auth',AuthRouter)
 app.use('/api/users',userRoutes)
-app.use('/api/listing',ListingRouter)
+app.use('/api/listings',ListingRouter)
 app.use('/api/bookings', bookingRouter);
 app.use('/api/reviews',reviewRouter);
 app.use('/api/notifications', notificationRouter);

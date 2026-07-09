@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile } from '../api/users';
 import { getListings } from '../api/listing'; 
@@ -23,18 +23,8 @@ export default function Profile() {
           getUserProfile(id),
           getListings({ owner: id })
         ]);
-        const userData = profileRes.data.user;
-        setProfile({
-          ...userData,
-          name: userData.name || userData.Name,
-          ratingAvg: userData.RatingAvg,
-          ratingCount: userData.RatingCount,
-          bio: userData.Bio,
-          location: userData.Location,
-          Picture: userData.Picture,
-          avatar: userData.Picture
-        });
-        setListings(listingsRes.data.Listings || listingsRes.data.listings || []);
+        setProfile(profileRes.data.user);
+        setListings(listingsRes.data.listings || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -42,51 +32,81 @@ export default function Profile() {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, refreshKey]);
 
-  if (loading) return <p className="p-6">Loading...</p>;
-  if (!profile) return <p className="p-6">User not found.</p>;
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+  if (!profile) return <div className="p-6 text-center text-red-500">User not found.</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <img
-          src={profile.Picture || 'https://placehold.co/100x100?text=User'}
-          className="w-20 h-20 rounded-full object-cover"
-        />
-        <div>
-          <h1 className="text-xl font-bold">{profile.Name || profile.name}</h1>
-          <p className="text-gray-500">{profile.Location || profile.location}</p>
-          <p className="text-sm">⭐ {profile.RatingAvg || 'No ratings yet'} ({profile.RatingCount || profile.ratingCount} reviews)</p>
-        </div>
-        {isOwnProfile && (
-          <button className="ml-auto border px-4 py-2 rounded">Edit Profile</button>
-        )}
-      </div>
-
-      <p className="text-gray-700 mb-6">{profile.Bio || profile.bio || 'No bio yet.'}</p>
-
-      <h2 className="font-semibold mb-3">Listings by {profile.Name || profile.name}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-        {listings.map((l) => (
-          <div key={l._id} className="border rounded p-2 text-sm">{l.title}</div>
-        ))}
-        {listings.length === 0 && <p className="text-gray-500 text-sm">No listings yet.</p>}
-      </div>
-
-      <h2 className="font-semibold mb-3">Reviews</h2>
-
-     
-      {currentUser && !isOwnProfile && (
-        <div className="mb-6">
-          <ReviewForm
-            targetUserId={profile._id}
-            onSubmitted={() => setRefreshKey((k) => k + 1)}
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-8">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <img
+            src={profile.picture || 'https://placehold.co/100x100?text=User'}
+            alt={profile.name}
+            className="w-32 h-32 rounded-full object-cover border-4 border-gray-50 shadow-sm"
           />
+          <div className="text-center md:text-left flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
+            <p className="text-gray-500 flex items-center justify-center md:justify-start gap-1 mt-1">
+              <span className="text-blue-600">📍</span> {profile.location || 'Location not specified'}
+            </p>
+            <div className="mt-3 flex items-center justify-center md:justify-start gap-4">
+              <div className="text-sm">
+                <span className="text-yellow-500 font-bold text-lg">★</span>
+                <span className="font-bold text-gray-900 ml-1">{profile.ratingAvg ? profile.ratingAvg.toFixed(1) : '0.0'}</span>
+                <span className="text-gray-400 ml-1">({profile.ratingCount || 0} reviews)</span>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider">
+                {profile.role}
+              </span>
+            </div>
+          </div>
+          {isOwnProfile && (
+            <button className="bg-white border border-gray-300 hover:bg-gray-50 px-6 py-2 rounded-md text-sm font-bold transition-colors">
+              Edit Profile
+            </button>
+          )}
         </div>
-      )}
 
-      <ReviewList userId={profile._id} refreshKey={refreshKey} />
+        <div className="mt-8 pt-8 border-t border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">About</h2>
+          <p className="text-gray-600 leading-relaxed">{profile.bio || 'No bio provided yet.'}</p>
+        </div>
+      </div>
+
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Listings by {profile.name}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {listings.map((l) => (
+            <Link key={l._id} to={`/listings/${l._id}`} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-gray-900 truncate">{l.title}</h3>
+              <p className="text-blue-600 font-bold mt-1">Rs. {l.pricing}</p>
+            </Link>
+          ))}
+          {listings.length === 0 && (
+            <div className="col-span-full py-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+              <p className="text-gray-500">No active listings.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews & Feedback</h2>
+        {currentUser && !isOwnProfile && (
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-8">
+            <h3 className="font-bold text-gray-900 mb-4">Leave a Review</h3>
+            <ReviewForm
+              targetUserId={profile._id}
+              onSubmitted={() => setRefreshKey((k) => k + 1)}
+            />
+          </div>
+        )}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <ReviewList userId={profile._id} refreshKey={refreshKey} />
+        </div>
+      </div>
     </div>
   );
 }

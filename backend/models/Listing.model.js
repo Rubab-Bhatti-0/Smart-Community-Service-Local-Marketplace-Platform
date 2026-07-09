@@ -8,30 +8,30 @@ const serviceSchema=new mongoose.Schema({
     },
     type: { type: String, enum: ['product', 'service'], required: true },
     title:{type:String,required:true,unique:true},
-    Description:{
+    description: {
         type:String,
         required:true
     }, 
-Pricing :{
+pricing: {
     type:Number,
     required:true
 },
-Delivery_Time:{
+deliveryTime: {
     type:String
 }, 
-Availability :{
+availability: {
     type:Boolean
 },
-Location:{
+location: {
     type:String
 
 },
-Images:[{type:String}] ,
+images: [{ type: String }],
 serviceCategory :{
     type:String,
     required:true
 },
-Stock:Number,
+stock: Number,
 status: { type: String, enum: ['active', 'pending', 'removed'], default: 'active' }
 
 },{timestamps:true})

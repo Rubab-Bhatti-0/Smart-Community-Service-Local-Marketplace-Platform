@@ -26,8 +26,8 @@ const createReview = async (req, res) => {
             ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
             : 0;
         await User.findByIdAndUpdate(targetUserId, {
-            RatingAvg: avg.toFixed(1),
-            RatingCount: allReviews.length
+            ratingAvg: avg.toFixed(1),
+            ratingCount: allReviews.length
         });
         res.status(201).json({ review });
     } catch (err) {
@@ -38,7 +38,7 @@ const createReview = async (req, res) => {
 const getReviewsForUser = async (req, res) => {
     try {
         const reviews = await Review.find({ seller: req.params.userId })
-            .populate('buyer', 'Name Picture')
+            .populate('buyer', 'name picture')
             .sort({ createdAt: -1 });
         res.status(200).json({ reviews });
     } catch (err) {
