@@ -8,5 +8,5 @@ const notificationSchema=new mongoose.Schema({
 
 },{timestamps:true})
 
-const notificationModel=mongoose.model('notification',notificationSchema)
+const notificationModel=mongoose.model('Notification',notificationSchema)
 module.exports=notificationModel

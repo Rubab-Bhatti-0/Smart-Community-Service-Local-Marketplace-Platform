@@ -4,9 +4,9 @@ const Notification = require('../models/Notification.model');
 
 const createBooking = async (req, res) => {
   try {
-    const { listingId, date, time, notes } = req.body;
+    const { listingId, date: Date, time: Time, notes } = req.body;
 
-    if (!listingId || !date) {
+    if (!listingId || !Date) {
       return res.status(400).json({ message: 'listingId and date are required' });
     }
 
@@ -23,8 +23,8 @@ const createBooking = async (req, res) => {
     const booking = await Booking.create({
       buyer: req.user._id,
       listing: listingId,
-      date,
-      time,
+      Date,
+      Time,
       notes,
       status: 'pending'
     });
@@ -45,7 +45,7 @@ const createBooking = async (req, res) => {
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ buyer: req.user._id })
-      .populate('listing', 'title Pricing Images owner')
+      .populate('listing', 'title Pricing Images owner').populate('listing.owner', 'Name Picture')
       .sort({ createdAt: -1 });
     res.status(200).json({ bookings });
   } catch (err) {

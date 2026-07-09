@@ -19,9 +19,9 @@ export default function BookingCard({ booking, viewAs, onStatusChange }) {
       <div>
         <p className="font-semibold">{booking.listing?.title}</p>
         <p className="text-sm text-gray-500">
-          {new Date(booking.date).toLocaleDateString()} {booking.time && `at ${booking.time}`}
+          {new Date(booking.Date).toLocaleDateString()} {booking.Time && `at ${booking.Time}`}
         </p>
-        {viewAs === 'seller' && <p className="text-sm text-gray-500">Requested by: {booking.buyer?.name}</p>}
+        {viewAs === 'seller' && <p className="text-sm text-gray-500">Requested by: {booking.buyer?.Name || booking.buyer?.name}</p>}
         <span className={`text-xs px-2 py-0.5 rounded inline-block mt-1 ${statusColors[booking.status]}`}>
           {booking.status}
         </span>

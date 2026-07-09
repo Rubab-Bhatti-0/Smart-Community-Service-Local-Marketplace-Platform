@@ -1,6 +1,6 @@
 import api from './axiosInstance';
 
-export const createBooking = (data) => api.post('/bookings', data);
-export const getMyBookings = () => api.get('/bookings/mine');
+export const createBooking = (data) => api.post('/bookings/create', data);
+export const getMyBookings = () => api.get('/bookings/getmine');
 export const getReceivedBookings = () => api.get('/bookings/received');
-export const updateBookingStatus = (id, status) => api.patch(`/bookings/${id}/status`, { status });
+export const updateBookingStatus = (id, status) => api.put(`/bookings/${id}/status`, { status });

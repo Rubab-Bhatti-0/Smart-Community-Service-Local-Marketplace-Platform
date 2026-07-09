@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getMyConversations } from '../api/conversations';
+import { getMyConversations } from '../api/conversation';
 
 export default function Conversations() {
   const { user } = useAuth();
@@ -25,11 +25,11 @@ export default function Conversations() {
               className="flex items-center gap-3 border rounded-lg p-3 hover:bg-gray-50"
             >
               <img
-                src={otherUser?.avatar || 'https://placehold.co/40x40?text=U'}
+                src={otherUser?.Picture || otherUser?.avatar || 'https://placehold.co/40x40?text=U'}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div>
-                <p className="font-medium">{otherUser?.name}</p>
+                <p className="font-medium">{otherUser?.Name || otherUser?.name}</p>
                 <p className="text-sm text-gray-500 truncate">{c.lastMessage || 'No messages yet'}</p>
               </div>
             </Link>

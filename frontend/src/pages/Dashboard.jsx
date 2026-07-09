@@ -14,21 +14,32 @@ export default function Dashboard() {
   const activeTab = searchParams.get('tab') || 'overview';
 
   const [myListings, setMyListings] = useState([]);
+  const [myListingsError, setMyListingsError] = useState(null);
   const [myBookings, setMyBookings] = useState([]);
   const [receivedBookings, setReceivedBookings] = useState([]);
   const [favorites, setFavorites] = useState([]);
 
   const fetchAll = async () => {
-    const [listingsRes, myBookingsRes, receivedRes, favRes] = await Promise.all([
-      getListings({ owner: user.id }),
-      getMyBookings(),
-      getReceivedBookings(),
-      getMyFavorites()
-    ]);
-    setMyListings(listingsRes.data.listings);
-    setMyBookings(myBookingsRes.data.bookings);
-    setReceivedBookings(receivedRes.data.bookings);
-    setFavorites(favRes.data.favorites);
+    try {
+      const listingsRes = await fetch(`${import.meta.env.VITE_API_URL}/listings/getmine`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      }).then(r => r.json());
+      setMyListings(listingsRes.listings || []);
+    } catch (err) {
+      setMyListingsError('Failed to load listings');
+    }
+    try {
+      const [myBookingsRes, receivedRes, favRes] = await Promise.all([
+        getMyBookings(),
+        getReceivedBookings(),
+        getMyFavorites()
+      ]);
+      setMyBookings(myBookingsRes.data.bookings);
+      setReceivedBookings(receivedRes.data.bookings);
+      setFavorites(favRes.data.favorites);
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    }
   };
 
   useEffect(() => {
@@ -67,7 +78,7 @@ export default function Dashboard() {
           {myListings.map((l) => (
             <div key={l._id} className="border rounded p-3">
               <p className="font-medium">{l.title}</p>
-              <p className="text-sm text-gray-500">Rs. {l.price}</p>
+              <p className="text-sm text-gray-500">Rs. {l.Pricing || l.price}</p>
             </div>
           ))}
           {myListings.length === 0 && <p className="text-gray-500">No listings yet.</p>}

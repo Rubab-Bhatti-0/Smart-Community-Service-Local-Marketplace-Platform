@@ -23,8 +23,18 @@ export default function Profile() {
           getUserProfile(id),
           getListings({ owner: id })
         ]);
-        setProfile(profileRes.data.user);
-        setListings(listingsRes.data.listings);
+        const userData = profileRes.data.user;
+        setProfile({
+          ...userData,
+          name: userData.name || userData.Name,
+          ratingAvg: userData.RatingAvg,
+          ratingCount: userData.RatingCount,
+          bio: userData.Bio,
+          location: userData.Location,
+          Picture: userData.Picture,
+          avatar: userData.Picture
+        });
+        setListings(listingsRes.data.Listings || listingsRes.data.listings || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,22 +51,22 @@ export default function Profile() {
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center gap-4 mb-6">
         <img
-          src={profile.avatar || 'https://placehold.co/100x100?text=User'}
+          src={profile.Picture || 'https://placehold.co/100x100?text=User'}
           className="w-20 h-20 rounded-full object-cover"
         />
         <div>
-          <h1 className="text-xl font-bold">{profile.name}</h1>
-          <p className="text-gray-500">{profile.location}</p>
-          <p className="text-sm">⭐ {profile.ratingAvg || 'No ratings yet'} ({profile.ratingCount} reviews)</p>
+          <h1 className="text-xl font-bold">{profile.Name || profile.name}</h1>
+          <p className="text-gray-500">{profile.Location || profile.location}</p>
+          <p className="text-sm">⭐ {profile.RatingAvg || 'No ratings yet'} ({profile.RatingCount || profile.ratingCount} reviews)</p>
         </div>
         {isOwnProfile && (
           <button className="ml-auto border px-4 py-2 rounded">Edit Profile</button>
         )}
       </div>
 
-      <p className="text-gray-700 mb-6">{profile.bio || 'No bio yet.'}</p>
+      <p className="text-gray-700 mb-6">{profile.Bio || profile.bio || 'No bio yet.'}</p>
 
-      <h2 className="font-semibold mb-3">Listings by {profile.name}</h2>
+      <h2 className="font-semibold mb-3">Listings by {profile.Name || profile.name}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
         {listings.map((l) => (
           <div key={l._id} className="border rounded p-2 text-sm">{l.title}</div>

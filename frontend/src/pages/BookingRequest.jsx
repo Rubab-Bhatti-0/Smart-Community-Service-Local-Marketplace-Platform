@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getListingById } from '../api/listings';
+import { getListingById } from '../api/listing';
 import { createBooking } from '../api/bookings';
 
 export default function BookingRequest() {
@@ -36,7 +36,7 @@ export default function BookingRequest() {
   return (
     <div className="max-w-md mx-auto p-6">
       <h1 className="text-xl font-bold mb-1">Request Booking</h1>
-      <p className="text-gray-500 mb-6">{listing.title} — Rs. {listing.price}</p>
+      <p className="text-gray-500 mb-6">{listing.title} — Rs. {listing.Pricing || listing.price}</p>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 

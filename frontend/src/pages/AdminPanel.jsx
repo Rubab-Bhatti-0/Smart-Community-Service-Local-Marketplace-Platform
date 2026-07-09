@@ -76,7 +76,7 @@ export default function AdminPanel() {
           <tbody>
             {users.map((u) => (
               <tr key={u._id} className="border-t">
-                <td className="p-2">{u.name}</td>
+                <td className="p-2">{u.Name || u.name}</td>
                 <td className="p-2">{u.email}</td>
                 <td className="p-2">{u.role}</td>
                 <td className="p-2">
@@ -109,7 +109,7 @@ export default function AdminPanel() {
             {listings.map((l) => (
               <tr key={l._id} className="border-t">
                 <td className="p-2">{l.title}</td>
-                <td className="p-2">{l.owner?.name}</td>
+                <td className="p-2">{l.owner?.Name || l.owner?.name}</td>
                 <td className="p-2">{l.status}</td>
                 <td className="p-2 space-x-2">
                   {l.status !== 'active' && (

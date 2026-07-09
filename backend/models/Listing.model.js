@@ -32,9 +32,9 @@ serviceCategory :{
     required:true
 },
 Stock:Number,
-// status: { type: String, enum: ['active', 'pending', 'removed'], default: 'active' }
+status: { type: String, enum: ['active', 'pending', 'removed'], default: 'active' }
 
 },{timestamps:true})
-const serviceModel=mongoose.model("listing",serviceSchema)
+const serviceModel=mongoose.model("Listing",serviceSchema)
 
 module.exports=serviceModel

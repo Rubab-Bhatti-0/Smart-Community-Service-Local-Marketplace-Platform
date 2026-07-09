@@ -1,4 +1,4 @@
-const Conversation = require('../models/Converstaion.model');
+const Conversation = require('../models/Conversation.model');
 const Message = require('../models/Message.model');
 
 
@@ -27,7 +27,7 @@ exports.startConversation = async (req, res) => {
 exports.getMyConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({ participants: req.user._id })
-      .populate('participants', 'name avatar')
+      .populate('participants', 'Name Picture')
       .sort({ updatedAt: -1 });
     res.status(200).json({ conversations });
   } catch (err) {

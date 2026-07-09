@@ -17,7 +17,18 @@ export default function ListingDetail() {
     const fetchListing = async () => {
       try {
         const res = await getListingById(id);
-        setListing(res.data.listing);
+        const l = res.data.listing;
+        setListing({
+          ...l,
+          price: l.Pricing,
+          description: l.Description,
+          images: l.Images || [],
+          owner: {
+            ...l.owner,
+            name: l.owner?.Name,
+            ratingAvg: l.owner?.RatingAvg
+          }
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -47,11 +58,11 @@ export default function ListingDetail() {
     <div className="max-w-5xl mx-auto p-6 grid md:grid-cols-2 gap-8">
       <div>
         <img
-          src={listing.images[activeImage] || 'https://placehold.co/600x400?text=No+Image'}
+          src={listing.Images?.[activeImage] || 'https://placehold.co/600x400?text=No+Image'}
           className="w-full h-96 object-cover rounded-lg"
         />
         <div className="flex gap-2 mt-2">
-          {listing.images.map((img, i) => (
+          {listing.Images?.map((img, i) => (
             <img
               key={i}
               src={img}
@@ -65,12 +76,12 @@ export default function ListingDetail() {
       <div>
         <span className="text-xs uppercase text-gray-400">{listing.type}</span>
         <h1 className="text-2xl font-bold">{listing.title}</h1>
-        <p className="text-blue-600 text-xl font-bold my-2">Rs. {listing.price}</p>
-        <p className="text-gray-700 mb-4">{listing.description}</p>
+        <p className="text-blue-600 text-xl font-bold my-2">Rs. {listing.Pricing || listing.price}</p>
+        <p className="text-gray-700 mb-4">{listing.Description || listing.description}</p>
 
         <div className="border-t pt-4 mt-4">
-          <p className="font-semibold">Seller: {listing.owner?.name}</p>
-          <p className="text-sm text-gray-500">Rating: {listing.owner?.ratingAvg || 'No ratings yet'}</p>
+          <p className="font-semibold">Seller: {listing.owner?.Name || listing.owner?.name}</p>
+          <p className="text-sm text-gray-500">Rating: {listing.owner?.RatingAvg || 'No ratings yet'}</p>
         </div>
 
         <div className="flex gap-3 mt-6">

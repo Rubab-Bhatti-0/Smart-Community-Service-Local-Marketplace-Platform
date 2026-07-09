@@ -8,7 +8,7 @@ export default function ListingForm() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    type: 'product', title: '', description: '', price: '', category: '',
+    type: 'product', title: '', description: '', price: '', serviceCategory: '',
     location: '', stock: '', deliveryTime: '', availability: ''
   });
   const [images, setImages] = useState([]);
@@ -21,9 +21,14 @@ export default function ListingForm() {
       const res = await getListingById(id);
       const l = res.data.listing;
       setForm({
-        type: l.type, title: l.title, description: l.description, price: l.price,
-        category: l.category, location: l.location || '', stock: l.stock || '',
-        deliveryTime: l.deliveryTime || '', availability: l.availability || ''
+        type: l.type, title: l.title,
+        description: l.Description || l.description,
+        price: l.Pricing || l.price,
+        serviceCategory: l.serviceCategory || l.category || '',
+        location: l.Location || l.location || '',
+        stock: l.Stock || l.stock || '',
+        deliveryTime: l.Delivery_Time || l.deliveryTime || '',
+        availability: l.Availability || l.availability || ''
       });
     };
     loadListing();
@@ -40,7 +45,13 @@ export default function ListingForm() {
 
     const data = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== '') data.append(key, value);
+      const mappedKey = key === 'price' ? 'Pricing' :
+          key === 'description' ? 'Description' :
+          key === 'serviceCategory' ? 'serviceCategory' :
+          key === 'stock' ? 'Stock' :
+          key === 'deliveryTime' ? 'Delivery_Time' :
+          key === 'availability' ? 'Availability' : key;
+      if (value !== '') data.append(mappedKey, value);
     });
     images.forEach((file) => data.append('images', file)); 
     try {
@@ -78,7 +89,7 @@ export default function ListingForm() {
         <input name="price" type="number" placeholder="Price" value={form.price} onChange={handleChange} required
           className="w-full border rounded px-3 py-2" />
 
-        <input name="category" placeholder="Category" value={form.category} onChange={handleChange} required
+        <input name="serviceCategory" placeholder="Service Category (e.g. Web Development)" value={form.serviceCategory} onChange={handleChange} required
           className="w-full border rounded px-3 py-2" />
 
         <input name="location" placeholder="Location" value={form.location} onChange={handleChange}

@@ -4,10 +4,10 @@ import { getListings } from '../api/listing';
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [pagination, setPagination] = useState({ page: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    search: '', type: '', category: '', minPrice: '', maxPrice: '', page: 1, limit: 12
+    search: '', type: '', serviceCategory: '', minPrice: '', maxPrice: '', page: 1, limit: 12
   });
 
   useEffect(() => {
@@ -17,9 +17,10 @@ export default function Listings() {
         const cleanParams = Object.fromEntries(
           Object.entries(filters).filter(([_, v]) => v !== '')
         );
+        if (cleanParams.page) cleanParams.page = Number(cleanParams.page);
         const res = await getListings(cleanParams);
-        setListings(res.data.listings);
-        setPagination(res.data.pagination);
+        setListings(res.data.Listings || res.data.listings || []);
+        setPagination({ page: Number(filters.page), total: res.data.total || 0 });
       } catch (err) {
         console.error(err);
       } finally {
@@ -55,9 +56,9 @@ export default function Listings() {
           </select>
           <input
             type="text"
-            placeholder="Category"
-            value={filters.category}
-            onChange={(e) => updateFilter('category', e.target.value)}
+            placeholder="Service Category"
+            value={filters.serviceCategory}
+            onChange={(e) => updateFilter('serviceCategory', e.target.value)}
             className="w-full border rounded px-3 py-2"
           />
           <div className="flex gap-2">
@@ -114,15 +115,15 @@ function ListingCard({ listing }) {
   return (
     <Link to={`/listings/${listing._id}`} className="border rounded-lg overflow-hidden hover:shadow-md transition">
       <img
-        src={listing.images[0] || 'https://placehold.co/400x300?text=No+Image'}
+        src={listing.Images?.[0] || listing.images?.[0] || 'https://placehold.co/400x300?text=No+Image'}
         alt={listing.title}
         className="w-full h-48 object-cover"
       />
       <div className="p-3">
         <span className="text-xs uppercase text-gray-400">{listing.type}</span>
         <h3 className="font-semibold truncate">{listing.title}</h3>
-        <p className="text-blue-600 font-bold">Rs. {listing.price}</p>
-        <p className="text-sm text-gray-500">{listing.owner?.name}</p>
+        <p className="text-blue-600 font-bold">Rs. {listing.Pricing || listing.price}</p>
+        <p className="text-sm text-gray-500">{listing.owner?.Name || listing.owner?.name}</p>
       </div>
     </Link>
   );

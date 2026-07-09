@@ -2,7 +2,7 @@ const mongoose=require('mongoose')
 
 const messageSchema=new mongoose.Schema({
         sender:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
-        conversation:{type:mongoose.Schema.Types.ObjectId,ref:'Converstaion',required:true},
+        conversation:{type:mongoose.Schema.Types.ObjectId,ref:'Conversation',required:true},
         text:{type:String},
         imageUrl: { type: String },
         read: { type: Boolean, default: false }

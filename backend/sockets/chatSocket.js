@@ -1,5 +1,5 @@
 const Message = require('../models/Message.model');
-const Conversation = require('../models/Converstaion.model');
+const Conversation = require('../models/Conversation.model');
 const Notification = require('../models/Notification.model');
 
 module.exports = (io) => {
